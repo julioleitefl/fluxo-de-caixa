@@ -1,0 +1,48 @@
+trigger:
+- master
+
+pool:
+  vmImage: 'ubuntu-latest'
+
+variables:
+  imageName: 'fluxocaixa:$(Build.BuildId)'
+
+steps:
+- task: Docker@2
+  displayName: 'Build Docker image'
+  inputs:
+    command: 'buildAndPush'
+    repository: $(imageName)
+    Dockerfile: '**/Dockerfile'
+    containerRegistry: 'yourRegistryServiceConnection'
+    tags: |
+      latest
+
+- task: Kubernetes@1
+  displayName: 'Deploy Kubernetes services'
+  inputs:
+    command: 'apply'
+    useConfigurationFile: true
+    configurationType: 'inline'
+    inlineConfiguration: |
+      apiVersion: apps/v1
+      kind: Deployment
+      metadata:
+        name: fluxocaixa
+      spec:
+        replicas: 1
+        selector:
+          matchLabels:
+            app: fluxocaixa
+        template:
+          metadata:
+            labels:
+              app: fluxocaixa
+          spec:
+            containers:
+            - name: fluxocaixa
+              image: 'yourRegistry/fluxocaixa:latest'
+              ports:
+              - containerPort: 8080
+    secretType: 'dockerRegistry'
+    dockerRegistryEndpoint: 'yourRegistryServiceConnection'
