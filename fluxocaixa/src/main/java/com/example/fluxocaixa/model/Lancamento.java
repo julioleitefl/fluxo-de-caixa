@@ -7,6 +7,12 @@ import java.util.Date;
 @Table(name = "lancamentos")
 public class Lancamento {
 
+    public Lancamento(int id, String tipo, double valor) {
+        this.id = id;
+        this.tipo = tipo;
+        this.valor = valor;
+    }    
+
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
     private int id;
